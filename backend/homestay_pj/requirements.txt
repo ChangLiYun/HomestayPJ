@@ -1,0 +1,9 @@
+flask
+flask_sqlalchemy
+pillow
+jinja2
+python-dotenv
+
+pyodbc
+sqlalchemy
+pandas
