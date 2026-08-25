@@ -1,0 +1,45 @@
+<h1>新增訂房訂單</h1>
+
+<form method="POST">
+    <p>
+        <label>選擇客戶：</label>
+        <select name="customer_id" required>
+            <option value="">-- 請選擇客戶 --</option>
+            {% for customer in customers %}
+                <!-- customer[0] 是 CustomerId，customer[1] 是 CustomerName -->
+                <option value="{{ customer[0] }}">{{ customer[1] }}</option>
+            {% endfor %}
+        </select>
+    </p>
+
+    <p>
+        <label>選擇房型：</label>
+        <select name="room_type_id" required>
+            <option value="">-- 請選擇房型 --</option>
+            {% for room in room_types %}
+                <!-- room[0] 是 RoomTypeId，room[1] 是 RoomName -->
+                <option value="{{ room[0] }}">{{ room[1] }}</option>
+            {% endfor %}
+        </select>
+    </p>
+
+    <p>
+        <label>入住日期：</label>
+        <input type="date" name="checkin" required>
+    </p>
+
+    <p>
+        <label>退房日期：</label>
+        <input type="date" name="checkout" required>
+    </p>
+
+    <p>
+        <label>入住人數：</label>
+        <input type="number" name="guest_count" min="1" placeholder="2" required>
+    </p>
+    
+    <button type="submit">📅 確認下單</button>
+</form>
+
+<br>
+<a href="/">🔙 回首頁</a>
