@@ -36,3 +36,14 @@ def get_all_bookings():
     
     conn.close()
     return bookings
+
+# 3. 根據 ID 刪除特定的訂房紀錄
+def delete_booking(booking_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute("DELETE FROM Booking WHERE BookingId = ?", (booking_id,))
+    
+    conn.commit()
+    conn.close()
+

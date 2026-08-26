@@ -1,4 +1,4 @@
-# HomestayPJ 專案狀態 (2026-08-26 更新)
+# HomestayPJ 專案狀態 
 
 ## 專案名稱
 
@@ -8,9 +8,9 @@ HomestayPJ - 民宿行程規劃與 ERP 財務管理系統
 
 先完成：
 
-- 客戶管理 (CRUD) ✨ 已完成
-- 房型管理 (CRUD) ✨ 已完成
-- 訂房與空房管理 ✨ 進行中
+- 客戶管理 (CRUD) ✓ 已完成
+- 房型管理 (CRUD) ✓ 已完成
+- 訂房與空房管理 --- 進行中---
 - 行程規劃與模板
 - JPG 匯出
 
@@ -55,8 +55,8 @@ HomestayERP
 │       ├─ app
 │       │   ├─ models
 │       │   │   ├─ customer.py   (已完成 CRUD)
-│       │   │   ├─ room_type.py  (已完成 Add, List, 補上 Check 空房 SQL)
-│       │   │   └─ booking.py    (已完成 Add, List JOIN 查詢)
+│       │   │   ├─ room_type.py  (已完成 Add, List, 剩餘空房計算 SQL)
+│       │   │   └─ booking.py    (已完成 Add,  List JOIN 查詢, Delete 功能)
 │       │   ├─ templates
 │       │   │   ├─ add_customer.html
 │       │   │   ├─ edit_customer.html
@@ -65,18 +65,18 @@ HomestayERP
 │       │   │   ├─ room_type_list.html
 │       │   │   ├─ add_booking.html
 │       │   │   ├─ booking_list.html
-│       │   │   └─ booking_search.html (待前端測試驗證)
+│       │   │   └─ booking_search.html (空房前端報表編號已修正完畢)
 │       │   ├─ routes
 │       │   ├─ services
 │       │   └─ static
 │       │
-│       ├─ main.py       (首頁選單與所有核心路由已補齊，支援自動跳轉)
+│       ├─ main.py       (防超賣驗證、彈窗攔截與自動跳轉路由已補齊)
 │       ├─ config.py
 │       ├─ init_db.py    (資料庫施工工人，已成功跑完 schema.sql)
 │       └─ requirements.txt
 │
 ├─ database
-│   ├─ homestaypj.db     (已全新重構，結構健康)
+│   ├─ homestaypj.db   
 │   ├─ schema.sql        (Customer, RoomType, Booking, Payment, BookingService)
 │   └─ sample_data.sql
 ```
@@ -119,25 +119,27 @@ HomestayERP
 -  客戶列表動態讀取與展示。
 -  編輯客戶功能 (帶入舊資料並執行 UPDATE)。
 -  刪除客戶功能 (帶有 onclick 確認視窗並執行 DELETE)。
--  成功將入住日期/人數等訂單欄位剝離，回歸標準客戶基本資料。
+-  客戶 CRUD 徹底對齊「資料庫正規化」，完全剝離日期/人數等冗餘欄位。
+-  修正 `edit_customer.html` 的前端索引值，徹底消滅 tuple 組合包括號。
 
 ###  房型管理 (RoomType)
--  新增房型 (房型名稱、可住人數、總房間數)。
--  解決 `no such table: RoomType` 錯誤，成功透過 `init_db.py` 重建全新乾淨資料庫。
 -  房型列表頁面建立，成功讀取房型資料。
+-  新增房型與房型列表動態讀取。
 
 ###  訂房管理 (Booking)
--  新增訂房訂單，前端採用下拉選單動態載入 Customer 與 RoomType。
--  實作 SQL `JOIN` 跨表調閱，成功在不重複儲存資料的原則下，於前端同時顯示客戶姓名、電話、房型名稱、入住日期與人數。
--  實作全面性的 `redirect` 跳轉機制，解決手動重新整理與一直按上一頁的痛點。
+-  實作 SQL `JOIN` 跨表調閱，訂房列表完美顯示姓名與房型。
+-  修正 `booking_search.html` 的前端呈現，完美動態顯示「房型、總間數、已訂數、剩餘空房」。
+-  **防超賣安全機制 (Overbooking Shield)**：在 `/booking/add` 後端加入驗證，
+    若剩餘空房 `<= 0` 則直接由 JavaScript 彈窗攔截失敗，並自動退回上一頁，絕不寫入資料庫。
+-  **刪除訂房 (Delete Booking)**：補齊訂房列表的刪除功能，利於排房資料清理與測試防護網。
+
 
 ---
 
 ## 下一步
 
 ### 1. 驗證空房即時查詢
-- [ ] 測試 `/booking/search` 路由。
-- [ ] 輸入日期區間，驗證「日期衝突排除演算法」是否能精準算出「總房間數 - 已訂房間 = ✨ 剩餘空房」。
+- [ ] 輸入日期區間，驗證「日期衝突排除演算法」是否能精準算出「總房間數 - 已訂房間 = 剩餘空房」。
 
 ### 2. 推進至行程規劃與輸出 
 - [ ] 行程管理 (Itinerary) CRUD 開發。

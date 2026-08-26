@@ -1,6 +1,5 @@
 <h1>編輯客戶資料</h1>
 
-<!-- 送出時會把資料用 POST 帶回後端 -->
 <form method="POST">
     <p>
         <label>姓名：</label>
@@ -9,18 +8,6 @@
     <p>
         <label>電話：</label>
         <input type="text" name="phone" value="{{ customer[2] }}" required>
-    </p>
-    <p>
-        <label>入住日期：</label>
-        <input type="date" name="checkin" value="{{ customer[3] }}" required>
-    </p>
-    <p>
-        <label>退房日期：</label>
-        <input type="date" name="checkout" value="{{ customer[4] }}" required>
-    </p>
-    <p>
-        <label>旅客人數：</label>
-        <input type="number" name="guest_count" value="{{ customer[5] }}" required>
     </p>
     
     <button type="submit">💾 儲存修改</button>

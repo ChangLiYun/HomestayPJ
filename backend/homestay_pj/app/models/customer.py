@@ -46,20 +46,21 @@ def get_customer_by_id(customer_id):
     conn.close()
     return customer
 
-# 2. 接收新的欄位資料，並更新到資料庫中
-def update_customer(customer_id, name, phone, checkin, checkout, guest_count):
-    conn = sqlite3.connect(DB_PATH) # 👈 改用你定義好的 DB_PATH
+# 2. 接收新的欄位資料，並更新到資料庫中（只保留 3 個參數：ID、姓名、電話）
+def update_customer(customer_id, name, phone):
+    conn = sqlite3.connect(DB_PATH) # 使用你最上方定義好的 DB_PATH
     cursor = conn.cursor()
     
-    # 這裡幫你對齊了你上方 INSERT 欄位的大寫名稱（CustomerName, Phone, CheckInDate 等）
+    # 這裡只更新資料庫目前確實存在的 CustomerName 和 Phone
     cursor.execute("""
         UPDATE Customer 
-        SET CustomerName = ?, Phone = ?, CheckInDate = ?, CheckOutDate = ?, GuestCount = ?
+        SET CustomerName = ?, Phone = ?
         WHERE CustomerID = ?
-    """, (name, phone, checkin, checkout, guest_count, customer_id))
+    """, (name, phone, customer_id))
     
     conn.commit()
     conn.close()
+
 
 # 3. 根據 ID 刪除特定的客戶資料
 def delete_customer(customer_id):

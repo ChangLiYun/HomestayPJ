@@ -8,6 +8,7 @@
         <th>入住日期</th>
         <th>退房日期</th>
         <th>入住人數</th>
+        <th>操作</th>
     </tr>
 
     {% for booking in bookings %}
@@ -18,6 +19,10 @@
         <td>{{ booking[3] }}</td>
         <td>{{ booking[4] }}</td>
         <td>{{ booking[5] }} 人</td>
+        <td>
+            <!-- 新增紅色的刪除按鈕，並加上確認防手滑視窗 -->
+            <a href="/booking/delete/{{ booking[0] }}" onclick="return confirm('確定要刪除這筆訂房紀錄嗎？');" style="color: red;"> 刪除</a>
+        </td>
     </tr>
     {% endfor %}
 </table>
