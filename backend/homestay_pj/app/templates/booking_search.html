@@ -1,0 +1,53 @@
+<h1>🔍 民宿空房即時查詢</h1>
+
+<!-- 日期輸入表單 -->
+<form method="POST">
+    <label>入住日期：</label>
+    <input type="date" name="checkin" value="{{ start_date if start_date }}" required>
+    
+    <label> 退房日期：</label>
+    <input type="date" name="checkout" value="{{ end_date if end_date }}" required>
+    
+    <button type="submit">開始查詢</button>
+</form>
+
+<hr>
+
+<!-- 查詢結果顯示 -->
+{% if available_rooms is not none %}
+    <h3>📅 查詢區間：{{ start_date }} ～ {{ end_date }}</h3>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>房型名稱</th>
+            <th>可住人數</th>
+            <th>總房間數</th>
+            <th>已訂間數</th>
+            <th>剩餘空房</th>
+        </tr>
+        {% for room in available_rooms %}
+        <tr>
+            <!-- room[1] 是房型名稱 -->
+            <td>{{ room[1] }}</td>
+            
+            <!-- room[2] 是可住人數 -->
+            <td>{{ room[2] }} 人</td>
+            
+            <!-- room[3] 是總房間數 -->
+            <td>{{ room[3] }} 間</td>
+            
+            <!-- room[4] 是已訂間數 -->
+            <td>{{ room[4] }} 間</td>
+            
+            <!-- room[5] 是剩餘空房（這行你剛才已經改對了！） -->
+            <td style="font-weight: bold; color: {{ 'green' if room[5] > 0 else 'red' }};">
+                {{ room[5] }} 間
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+{% endif %}
+        
+
+<br><br>
+<a href="/">🔙 回首頁</a>

@@ -15,7 +15,8 @@ from app.models.customer import (
 )
 from app.models.room_type import (
     add_room_type, 
-    get_all_room_types)
+    get_all_room_types, 
+    check_available_rooms)
 
 
 app = Flask(
@@ -40,7 +41,8 @@ def home():
 
     <h3>📅 訂房管理</h3>
     <a href="/booking/add">👉 登記新訂房</a> | 
-    <a href="/booking/list">📋 訂房紀錄總覽</a>
+    <a href="/booking/list">📋 訂房紀錄總覽</a> | 
+    <a href="/booking/search">🔍 即時空房查詢</a>
     """
 
 
@@ -141,6 +143,26 @@ def booking_add():
     customers = get_all_customers()
     room_types = get_all_room_types()
     return render_template("add_booking.html", customers=customers, room_types=room_types)
+
+# 空房查詢頁面
+@app.route("/booking/search", methods=["GET", "POST"])
+def booking_search():
+    available_rooms = None
+    start_date = None
+    end_date = None
+
+    if request.method == "POST":
+        start_date = request.form["checkin"]
+        end_date = request.form["checkout"]
+        # 呼叫資料庫計算空房
+        available_rooms = check_available_rooms(start_date, end_date)
+
+    return render_template(
+        "booking_search.html", 
+        available_rooms=available_rooms, 
+        start_date=start_date, 
+        end_date=end_date
+    )
 
 
 
