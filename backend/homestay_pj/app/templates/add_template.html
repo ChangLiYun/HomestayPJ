@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>建立新行程模板</title>
+</head>
+<body style="line-height: 1.8; padding: 20px;">
+    <h1>➕ 建立新行程模板</h1>
+    <p>請輸入模板的名稱，並初始化第一筆推薦的行程景點：</p>
+    
+    <form action="/template/add" method="POST" style="max-width: 500px;">
+        <!-- 1. 模板主標題 -->
+        <fieldset style="padding: 15px; margin-bottom: 15px; border: 1px solid #ccc;">
+            <legend><strong>基本資訊</strong></legend>
+            <p>
+                <label>模板名稱：</label>
+                <input type="text" name="template_name" placeholder="例如：三天兩夜網美打卡行程" style="width: 80%; padding: 5px;" required>
+            </p>
+        </fieldset>
+
+        <!-- 2. 行程明細欄位 -->
+        <fieldset style="padding: 15px; margin-bottom: 15px; border: 1px solid #ccc;">
+            <legend><strong>初始化行程明細 (第一筆)</strong></legend>
+            <p>
+                <label>第幾天：</label>
+                <input type="number" name="day_number" value="1" min="1" style="width: 50px; padding: 5px;" required>
+            </p>
+            <p>
+                <label>活動時間：</label>
+                <input type="text" name="activity_time" placeholder="例如：15:00 或 下午" style="width: 150px; padding: 5px;" required>
+            </p>
+            <p>
+                <label style="vertical-align: top;">行程景點內容：</label>
+                <textarea name="description" rows="3" placeholder="例如：辦理進房 Check-in，享用現做手工迎賓下午茶" style="width: 80%; padding: 5px;" required></textarea>
+            </p>
+        </fieldset>
+
+        <p>
+            <button type="submit" style="padding: 8px 15px; cursor: pointer;">💾 儲存模板與明細</button>
+        </p>
+    </form>
+    
+    <br>
+    <a href="/template/list">🔙 返回模板總覽</a>
+</body>
+</html>

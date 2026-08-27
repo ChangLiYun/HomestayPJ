@@ -1,25 +1,36 @@
 <h1>🏨 民宿訂房紀錄總覽</h1>
 
-<table border="1">
-    <tr>
-        <th>訂單 ID</th>
-        <th>客戶姓名</th>
-        <th>安排房型</th>
-        <th>入住日期</th>
-        <th>退房日期</th>
-        <th>入住人數</th>
-        <th>操作</th>
+<table border="1" style="width: 100%; max-width: 900px; border-collapse: collapse; text-align: center;">
+    <tr style="background-color: #f2f2f2;"> <!-- 加個淡淡的背景色讓標頭更好看 -->
+        <th style="padding: 10px;">訂單 ID</th>
+        <th style="padding: 10px;">客戶姓名</th>
+        <th style="padding: 10px;">安排房型</th>
+        <th style="padding: 10px;">入住日期</th>
+        <th style="padding: 10px;">退房日期</th>
+        <th style="padding: 10px;">入住人數</th>
+        <th style="padding: 10px;">備註</th>
+        <th style="padding: 10px;">操作</th>
     </tr>
 
     {% for booking in bookings %}
-    <tr>
-        <td>{{ booking[0] }}</td>
-        <td>{{ booking[1] }}</td>
-        <td>{{ booking[2] }}</td>
-        <td>{{ booking[3] }}</td>
-        <td>{{ booking[4] }}</td>
-        <td>{{ booking[5] }} 人</td>
-        <td>
+     <tr>
+        <td style="padding: 10px;">{{ booking[0] }}</td>
+        <td style="padding: 10px;">{{ booking[1] }}</td>
+        <td style="padding: 10px;">{{ booking[2] }}</td>
+        <td style="padding: 10px;">{{ booking[3] }}</td>
+        <td style="padding: 10px;">{{ booking[4] }}</td>
+        <td style="padding: 10px;">{{ booking[5] }} 人</td>
+        <td style="padding: 10px;">
+            {% if booking[6] and booking[6] != 'None' %}
+                {{ booking[6] }}
+            {% endif %}
+        </td>
+
+        <td style="padding: 10px;">
+            <a href="/booking/itinerary/{{ booking[0] }}" style="text-decoration: none;"> 規劃行程</a>
+        </td>
+        
+        <td style="padding: 10px;">
             <!-- 新增紅色的刪除按鈕，並加上確認防手滑視窗 -->
             <a href="/booking/delete/{{ booking[0] }}" onclick="return confirm('確定要刪除這筆訂房紀錄嗎？');" style="color: red;"> 刪除</a>
         </td>

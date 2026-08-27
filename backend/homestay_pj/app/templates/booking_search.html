@@ -16,27 +16,27 @@
 <!-- 查詢結果顯示 -->
 {% if available_rooms is not none %}
     <h3>📅 查詢區間：{{ start_date }} ～ {{ end_date }}</h3>
-    <table border="1" cellpadding="5">
+    <table border="1" cellpadding="5" style="width: 100%; max-width: 700px; border-collapse: collapse; text-align: center;">
         <tr>
-            <th>房型名稱</th>
-            <th>可住人數</th>
-            <th>總房間數</th>
-            <th>已訂間數</th>
-            <th>剩餘空房</th>
+            <th style="padding: 10px;">房型名稱</th>
+            <th style="padding: 10px;">可住人數</th>
+            <th style="padding: 10px;">總房間數</th>
+            <th style="padding: 10px;">已訂間數</th>
+            <th style="padding: 10px;">剩餘空房</th>
         </tr>
         {% for room in available_rooms %}
         <tr>
             <!-- room[1] 是房型名稱 -->
-            <td>{{ room[1] }}</td>
+            <td style="padding: 8px;">{{ room[1] }}</td>
             
             <!-- room[2] 是可住人數 -->
-            <td>{{ room[2] }} 人</td>
+            <td style="padding: 8px;">{{ room[2] }} 人</td>
             
             <!-- room[3] 是總房間數 -->
-            <td>{{ room[3] }} 間</td>
+            <td style="padding: 8px;">{{ room[3] }} 間</td>
             
             <!-- room[4] 是已訂間數 -->
-            <td>{{ room[4] }} 間</td>
+            <td style="padding: 8px;">{{ room[4] }} 間</td>
             
             <!-- room[5] 是剩餘空房（這行你剛才已經改對了！） -->
             <td style="font-weight: bold; color: {{ 'green' if room[5] > 0 else 'red' }};">

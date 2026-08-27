@@ -1,20 +1,20 @@
 <h1>房型列表</h1>
 
-<table border="1">
+<table border="1" style="width: 100%; max-width: 500px; border-collapse: collapse; text-align: center;">
     <tr>
-        <th>房型 ID</th>
-        <th>房型名稱</th>
-        <th>可住人數 (人)</th>
-        <th>總房間數 (間)</th>
+        <th style="padding: 10px;">房型 ID</th>
+        <th style="padding: 10px;">房型名稱</th>
+        <th style="padding: 10px;">可住人數 (人)</th>
+        <th style="padding: 10px;">總房間數 (間)</th>
     </tr>
 
     {% for room in room_types %}
     <tr>
         <!-- 這裡的欄位順序對應資料庫：RoomTypeId, RoomName, Capacity, TotalRooms -->
-        <td>{{ room[0] }}</td>
-        <td>{{ room[1] }}</td>
-        <td>{{ room[2] }}</td>
-        <td>{{ room[3] }}</td>
+        <td style="padding: 8px;">{{ room[0] }}</td>
+        <td style="padding: 8px;">{{ room[1] }}</td>
+        <td style="padding: 8px;">{{ room[2] }}</td>
+        <td style="padding: 8px;">{{ room[3] }}</td>
     </tr>
     {% endfor %}
 </table>

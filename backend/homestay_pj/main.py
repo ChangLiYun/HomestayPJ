@@ -19,32 +19,27 @@ from app.models.room_type import (
     get_all_room_types, 
     check_available_rooms)
 
+from app.models.itinerary import (
+    get_all_templates, 
+    add_template, 
+    add_template_detail,
+    get_template_by_id, 
+    get_template_details,
+    delete_template_detail,
+    delete_entire_template,
+    apply_template_to_booking, 
+    get_booking_itinerary)
+
 
 app = Flask(
     __name__,
     template_folder="app/templates"
 )
 
-
+# 👉📋🔍 🧭
 @app.route("/")
 def home():
-    return """
-    <h1>HomestayPJ</h1>
-    <p>民宿行程規劃系統</p>
-
-    <h3>👥 客戶管理</h3>
-    <a href="/customer/add">👉 新增客戶</a> | 
-    <a href="/customer/list">📋 客戶列表</a>
-
-    <h3>🛏️ 房型管理</h3>
-    <a href="/room_type/add">👉 新增房型</a> | 
-    <a href="/room_type/list">📋 房型列表</a>
-
-    <h3>📅 訂房管理</h3>
-    <a href="/booking/add">👉 登記新訂房</a> | 
-    <a href="/booking/list">📋 訂房紀錄總覽</a> | 
-    <a href="/booking/search">🔍 即時空房查詢</a>
-    """
+    return render_template("index.html")
 
 
 
@@ -130,6 +125,7 @@ def booking_add():
         target_room_type_id = int(request.form["room_type_id"])
         checkin_date = request.form["checkin"]
         checkout_date = request.form["checkout"]
+        note = request.form.get('note', '')
         
         # 2. 悄悄先去查一下這段時間所有房型的剩餘空房
         from app.models.room_type import check_available_rooms
@@ -151,7 +147,8 @@ def booking_add():
                 target_room_type_id,
                 checkin_date,
                 checkout_date,
-                int(request.form["guest_count"])
+                int(request.form["guest_count"]),
+                note
             )
             return redirect("/booking/list")
         else:
@@ -196,6 +193,111 @@ def booking_delete(booking_id):
     delete_booking(booking_id)
     # 刪除後自動跳轉回訂房總覽，畫面就會一秒刷新！
     return redirect("/booking/list")
+
+# --- 行程模板 ----------------------------------------------------------------------
+@app.route("/template/list")
+def template_list():
+    """查看行程模板總覽"""
+    templates = get_all_templates()
+    return render_template("template_list.html", templates=templates)
+
+@app.route("/template/add", methods=["GET", "POST"])
+def template_add():
+    """新增行程模板與初始化明細"""
+    if request.method == "POST":
+        # 1. 接收網頁傳過來的所有欄位
+        template_name = request.form["template_name"]
+        day_number = int(request.form["day_number"])
+        activity_time = request.form["activity_time"]
+        description = request.form["description"]
+        
+        # 2. 呼叫 model 先建立模板主體，並拿到剛剛生成的 TemplateId
+        t_id = add_template(template_name)
+        
+        # 3. 呼叫 model 把網頁填寫的真實行程細節塞入 TemplateDetail 資料表
+        add_template_detail(t_id, day_number, activity_time, description)
+        
+        # 4. 大功告成，帶老闆娘跳轉回總覽列表
+        return redirect("/template/list")
+        
+    return render_template("add_template.html")
+
+@app.route("/template/detail/<int:template_id>/add", methods=["POST"])
+def template_detail_add(template_id):
+    """在細節頁面中直接幫該模板追加新的景點時段"""
+    day_number = int(request.form["day_number"])
+    activity_time = request.form["activity_time"]
+    description = request.form["description"]
+    
+    # 呼叫我們之前就寫好的 add_template_detail 函數
+    add_template_detail(template_id, day_number, activity_time, description)
+    
+    # 💡 亮點：新增完後，直接自動跳轉回「原本這個模板的細節頁面」，畫面一重新整理就能看到新行程！
+    return redirect(f"/template/detail/{template_id}")
+
+@app.route("/template/detail/<template_id>")
+def template_detail(template_id):
+    """查看行程模板的每日詳細景點"""
+    # 確保轉成整數去查資料庫
+    t_id = int(template_id)
+    
+    # 1. 撈出模板主資訊
+    template = get_template_by_id(t_id)
+    
+    # 2. 撈出該模板底下的所有行程明細
+    details = get_template_details(t_id)
+    
+    # 3. 丟給前端網頁渲染
+    return render_template("template_detail.html", template=template, details=details)
+
+@app.route("/template/detail/<template_id>/delete/<detail_id>")
+def template_detail_delete(template_id, detail_id):
+    """刪除模板中的某一筆行程時段"""
+    # 執行刪除（記得去 itinerary.py 補上 delete_template_detail 函數喔！）
+    delete_template_detail(int(detail_id))
+    
+    # 刪除成功後，自動帶老闆娘回到剛剛那個模板的細節頁面！
+    return redirect(f"/template/detail/{template_id}")
+
+@app.route("/template/delete/<int:template_id>")
+def template_delete_main(template_id):
+    """在總覽頁面刪除整套行程模板"""
+    delete_entire_template(template_id)
+    # 刪除完後，重新整理總覽列表
+    return redirect("/template/list")
+
+#------------------------------------------------------------------------------------
+@app.route("/booking/apply_template/<int:booking_id>", methods=["POST"])
+def booking_apply_template(booking_id):
+    """接收前端送來的範本 ID，幫訂單套用行程"""
+    template_id = int(request.form["template_id"])
+    
+    # 呼叫剛寫好的複製複製大法
+    apply_template_to_booking(booking_id, template_id)
+    
+    # 套用成功後，直接跳轉到「這個客人的專屬行程查看頁面」！
+    return redirect(f"/booking/itinerary/{booking_id}")
+
+
+@app.route("/booking/itinerary/<int:booking_id>")
+def booking_itinerary_view(booking_id):
+    """觀看並客製化某個客戶訂單的專屬行程"""
+    # 1. 為了畫面好看，我們順便撈一下這筆訂單的主資訊（如客人姓名、房型）
+    from app.models.booking import get_all_bookings
+    all_b = get_all_bookings()
+    current_b = None
+    for b in all_b:
+        if b[0] == booking_id:
+            current_b = b # 找到這筆訂單了！
+            break
+            
+    # 2. 撈出這個客人的客製化行程清單
+    itinerary_list = get_booking_itinerary(booking_id)
+    
+    # 3. 順便把所有可用的「行程模板」撈出來，以備老闆娘隨時想改套別的範本
+    templates = get_all_templates()
+    
+    return render_template("booking_itinerary.html", booking=current_b, itinerary=itinerary_list, templates=templates)
 
 
 

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>行程模板管理</title>
+</head>
+<body>
+    <h1>🗺️ 行程模板總覽</h1>
+
+    <table border="1" style="width: 100%; max-width: 500px; border-collapse: collapse; text-align: center;">
+        <tr style="background-color: #f2f2f2;">
+            <th style="padding: 10px;">模板 ID</th>
+            <th style="padding: 10px;">模板名稱</th>
+            <th style="padding: 10px;">操作</th>
+        </tr>
+
+        {% for t in templates %}
+        <tr>
+            <td style="padding: 8px;">{{ t[0] }}</td>
+            <td style="padding: 8px;">{{ t[1] }}</td>
+            <td style="padding: 8px;">
+                <a href="/template/detail/{{ t[0] }}"> 查看細節</a>
+                &nbsp;|&nbsp;
+                <a href="/template/delete/{{ t[0] }}" onclick="return confirm('⚠️ 注意：這將會連同刪除此模板內『所有天數的行程明細』！確定要刪除整套模板嗎？');" style="color: red; text-decoration: none;"> 刪除</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/template/add">➕ 建立新行程模板</a>
+    <br><br>
+    <a href="/">🔙 回首頁</a>
+</body>
+</html>

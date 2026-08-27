@@ -1,23 +1,23 @@
 <h1>客戶列表</h1>
 
-<table border="1">
+<table border="1" style="width: 100%; max-width: 700px; border-collapse: collapse; text-align: center;">
     <tr>
-        <th>ID</th>
-        <th>姓名</th>
-        <th>電話</th>
-        <th>操作</th>
+        <th style="padding: 10px;">ID</th>
+        <th style="padding: 10px;">姓名</th>
+        <th style="padding: 10px;">電話</th>
+        <th style="padding: 10px;">操作</th>
     </tr>
 
     {% for customer in customers %}
     <tr>
         <!-- 這裡只抓取資料庫目前的 CustomerId, CustomerName, Phone -->
-        <td>{{ customer[0] }}</td>
-        <td>{{ customer[1] }}</td>
-        <td>{{ customer[2] }}</td>
-        <td>
-            <a href="/customer/edit/{{ customer[0] }}">✏️ 編輯</a>
+        <td style="padding: 8px;">{{ customer[0] }}</td>
+        <td style="padding: 8px;">{{ customer[1] }}</td>
+        <td style="padding: 8px;">{{ customer[2] }}</td>
+        <td style="padding: 8px;">
+            <a href="/customer/edit/{{ customer[0] }}"> 編輯</a>
             &nbsp;|&nbsp;
-            <a href="/customer/delete/{{ customer[0] }}" onclick="return confirm('確定要刪除這位客戶嗎？');" style="color: red;">❌ 刪除</a>
+            <a href="/customer/delete/{{ customer[0] }}" onclick="return confirm('確定要刪除這位客戶嗎？');" style="color: red;"> 刪除</a>
         </td>
     </tr>
     {% endfor %}
