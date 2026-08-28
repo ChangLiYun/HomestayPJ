@@ -2,6 +2,8 @@ from flask import Flask
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask import send_file # 圖片輸出用
+
 from app.models.booking import ( 
     add_booking, 
     get_all_bookings, 
@@ -28,7 +30,10 @@ from app.models.itinerary import (
     delete_template_detail,
     delete_entire_template,
     apply_template_to_booking, 
-    get_booking_itinerary)
+    get_booking_itinerary,
+    get_detail_by_id,
+    update_template_detail,
+    generate_itinerary_jpg)
 
 
 app = Flask(
@@ -266,6 +271,24 @@ def template_delete_main(template_id):
     # 刪除完後，重新整理總覽列表
     return redirect("/template/list")
 
+@app.route("/template/detail/<template_id>/edit/<detail_id>", methods=["GET", "POST"])
+def template_detail_edit(template_id, detail_id):
+    """編輯單一筆行程景點時段"""
+    if request.method == "POST":
+        day_number = int(request.form["day_number"])
+        activity_time = request.form["activity_time"]
+        description = request.form["description"]
+        
+        # 執行資料庫更新
+        update_template_detail(int(detail_id), day_number, activity_time, description)
+        
+        # 💡 關鍵：更新後直接帶老闆娘退回細節總覽，此時資料庫會自動按時間重新排列！
+        return redirect(f"/template/detail/{template_id}")
+        
+    # GET 模式：撈出舊資料，填入編輯網頁的輸入框中
+    detail_data = get_detail_by_id(int(detail_id))
+    return render_template("template_detail_edit.html", template_id=template_id, detail=detail_data)
+
 #------------------------------------------------------------------------------------
 @app.route("/booking/apply_template/<int:booking_id>", methods=["POST"])
 def booking_apply_template(booking_id):
@@ -299,6 +322,35 @@ def booking_itinerary_view(booking_id):
     
     return render_template("booking_itinerary.html", booking=current_b, itinerary=itinerary_list, templates=templates)
 
+#--- 圖片輸出 -------------------------------------------------------------------------------
+
+@app.route("/booking/export_jpg/<int:booking_id>")
+def booking_export_jpg(booking_id):
+    """【主線終點站】一鍵產出客人的專屬行程 JPG 卡片提供下載"""
+    # 1. 撈出這筆訂單的主資訊
+    from app.models.booking import get_all_bookings
+    all_b = get_all_bookings()
+    current_b = None
+    for b in all_b:
+        if b[0] == booking_id:
+            current_b = b
+            break
+            
+    if not current_b:
+        return "❌ 找不到該筆訂單", 404
+        
+    # 2. 撈出這個客人目前已經套用的客製化行程清單
+    from app.models.itinerary import get_booking_itinerary
+    itinerary_list = get_booking_itinerary(booking_id)
+    
+    # 3. 丟給 Pillow 工廠開始畫圖，拿到記憶體圖片檔案
+    img_stream = generate_itinerary_jpg(current_b, itinerary_list)
+    
+    # 4. 告訴瀏覽器這是一個附件下載，檔名叫作客人姓名的行程卡
+    customer_name = current_b[1]
+    filename = f"Itinerary_{customer_name}.jpg"
+    
+    return send_file(img_stream, mimetype='image/jpeg', as_attachment=True, download_name=filename)
 
 
 if __name__ == "__main__":

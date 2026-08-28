@@ -29,6 +29,8 @@
                 
                 <!-- 🗑️ 刪除按鈕，注意這裡要同時傳入模板 ID 和這筆行程的 DetailId (d[0]) -->
                 <td style="padding: 8px;">
+                    <a href="/template/detail/{{ template[0] }}/edit/{{ d[0] }}" style="text-decoration: none; color: blue;"> 編輯</a>
+                    &nbsp;|&nbsp;
                     <a href="/template/detail/{{ template[0] }}/delete/{{ d[0] }}" onclick="return confirm('確定要刪除這段行程嗎？');" style="color: red; text-decoration: none;"> 刪除</a>
                 </td>
             </tr>
@@ -51,7 +53,7 @@
             <input type="number" name="day_number" value="1" min="1" style="width: 50px; padding: 5px;" required>
             
             <label style="margin-left: 20px;">活動時間：</label>
-            <input type="text" name="activity_time" placeholder="例如：12:00 或 下午" style="width: 120px; padding: 5px;" required>
+            <input type="time" name="activity_time" style="width: 120px; padding: 5px;" required>
         </p>
         <p>
             <label style="vertical-align: top;">景點行程描述：</label>

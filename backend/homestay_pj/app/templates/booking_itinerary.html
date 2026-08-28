@@ -17,6 +17,11 @@
         <strong>入住區間：</strong> {{ booking[3] }} ～ {{ booking[4] }} <br>
         <strong>特殊備註：</strong> 
         {% if booking[6] and booking[6] != 'None' %} {{ booking[6] }} {% else %} 無 {% endif %}
+         <div style="margin-bottom: 20px;">
+        <!-- 💡 這次新加的：一鍵產出圖片大按鈕 -->
+        <a href="/booking/export_jpg/{{ booking[0] }}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; font-weight: bold; border-radius: 5px; box-shadow: 2px 2px 5px #ccc;">
+            🖼️ 產生並下載 LINE 行程確認卡 (JPG)
+        </a>
     </div>
     {% endif %}
 
