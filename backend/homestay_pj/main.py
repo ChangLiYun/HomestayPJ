@@ -326,13 +326,13 @@ def booking_itinerary_view(booking_id):
 
 @app.route("/booking/export_jpg/<int:booking_id>")
 def booking_export_jpg(booking_id):
-    """【主線終點站】一鍵產出客人的專屬行程 JPG 卡片提供下載"""
+    """一鍵產出客人的專屬行程 JPG 卡片提供下載"""
     # 1. 撈出這筆訂單的主資訊
     from app.models.booking import get_all_bookings
     all_b = get_all_bookings()
     current_b = None
     for b in all_b:
-        if b[0] == booking_id:
+        if b[0] == booking_id: # 💡 確保比對的是第一個元素 BookingId
             current_b = b
             break
             
@@ -344,13 +344,28 @@ def booking_export_jpg(booking_id):
     itinerary_list = get_booking_itinerary(booking_id)
     
     # 3. 丟給 Pillow 工廠開始畫圖，拿到記憶體圖片檔案
+    from app.models.itinerary import generate_itinerary_jpg
     img_stream = generate_itinerary_jpg(current_b, itinerary_list)
     
-    # 4. 告訴瀏覽器這是一個附件下載，檔名叫作客人姓名的行程卡
-    customer_name = current_b[1]
+    # 4. 💡 修正亮點：根據你早上寫的 SQL 順序，c.CustomerName 是在第二個位置（索引值 1）
+    customer_name = current_b[1] 
+    
+    # 防呆：萬一名字讀出來真的是 None，給個預設檔名防止系統大崩潰
+    if not customer_name:
+        customer_name = f"Guest_{booking_id}"
+        
     filename = f"Itinerary_{customer_name}.jpg"
     
-    return send_file(img_stream, mimetype='image/jpeg', as_attachment=True, download_name=filename)
+    img_stream.name = filename
+    
+    # 送出下載
+    return send_file(
+        img_stream, 
+        mimetype='image/jpeg', 
+        as_attachment=True, 
+        download_name=filename
+    )
+
 
 
 if __name__ == "__main__":
