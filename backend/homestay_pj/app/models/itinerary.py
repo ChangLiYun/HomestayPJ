@@ -4,7 +4,8 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 from datetime import datetime, timedelta
 
-# 💡 終極穩固路徑法：直接切開路徑，找到 HomestayERP 根目錄的絕對位置！
+
+# 穩固路徑法：直接切開路徑，找到 HomestayERP 根目錄的絕對位置
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = CURRENT_DIR.split("backend")[0] # 自動切到 backend 之前的那一層（也就是 HomestayERP）
 DB_PATH = os.path.join(BASE_DIR, "database", "homestaypj.db")
@@ -112,23 +113,33 @@ def apply_template_to_booking(booking_id, template_id):
     """將指定的行程模板複製一份，正式綁定到該筆訂房訂單上"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
     cursor.execute("DELETE FROM Itinerary WHERE BookingId = ?", (booking_id,))
+    
     cursor.execute("SELECT DayNumber, ActivityTime, Description FROM TemplateDetail WHERE TemplateId = ?", (template_id,))
     details = cursor.fetchall()
+    
+    # 🚨 補上這行測試 1
+    print(f" LOG: 點擊套用！從範本庫 (ID: {template_id}) 抓到 {len(details)} 筆行程。")
+    
     for d in details:
         cursor.execute("""
             INSERT INTO Itinerary (BookingId, DayNumber, ActivityTime, Description)
             VALUES (?, ?, ?, ?)
         """, (booking_id, d[0], d[1], d[2]))
+        
     conn.commit()
     conn.close()
+    print(" LOG: 資料庫已 commit 存盤並關閉連線。")
+
 
 def get_booking_itinerary(booking_id):
-    """撈出某筆訂房訂單目前已經綁定的專屬客製化行程"""
+    """撈出某筆訂房訂單目前已經綁定的專屬客製化行程（精準對齊前端 d[2], d[3], d[4] 索引值）"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    # 💡 亮點：我們把 BookingId 補進 SELECT 的第二個位置，這樣後面 2, 3, 4 的順序就完全對齊了！
     cursor.execute("""
-        SELECT ItineraryId, DayNumber, ActivityTime, Description 
+        SELECT ItineraryId, BookingId, DayNumber, ActivityTime, Description 
         FROM Itinerary 
         WHERE BookingId = ?
         ORDER BY DayNumber ASC, ActivityTime ASC
@@ -137,6 +148,11 @@ def get_booking_itinerary(booking_id):
     conn.close()
     return itinerary_list
 
+# d[0] ＝ ItineraryId
+# d[1] ＝ BookingId
+# d[2] ＝ DayNumber (天數，對應前端的 第 {{ d[2] }} 天)
+# d[3] ＝ ActivityTime (時間，對應前端的 {{ d[3] }})
+# d[4] ＝ Description (這就是帶有 ｜ 的魔術字串)
 
 # ========================================================
 # 3. Notion 表格自動繪製與換行引擎 (海顏還原版)
@@ -172,7 +188,29 @@ def generate_itinerary_jpg(booking_info, itinerary_list):
     """【海顏 Notion 風】終極還原產圖引擎 (安全對齊版)"""
     img = Image.new("RGB", (900, 2500), color=(255, 255, 255)) # 稍微再拉長畫布防擠壓
     draw = ImageDraw.Draw(img)
-    
+
+    current_y = 0  # 💡 先在這初始化 current_y
+
+    # 絕對路徑
+    BANNER_PATH = r"D:\HomestayERP\banner.jpg"
+
+
+    if os.path.exists(BANNER_PATH):
+        # 2. 打開你的 banner 圖
+        banner = Image.open(BANNER_PATH)
+        
+        # 💡 假設你的大畫布寬度是 1200 像素，我們可以把 banner 縮放到跟畫布一樣寬
+        # 這裡的 canvas_width 請對照你原本寫的白色底圖寬度
+        canvas_width = 900 
+        banner_w, banner_h = banner.size
+        scale = canvas_width / banner_w
+        banner_resized = banner.resize((canvas_width, int(banner_h * scale)))
+        
+        # 3. 貼上大畫布的最頂端 (0, 0) 位置
+        # 註：如果貼了 banner，下面的標題與表格的 Y 軸起始點（current_y）記得要加上 banner_resized.height 往下推！
+        img.paste(banner_resized, (0, 0))
+        current_y += banner_resized.height + 20 
+
     try:
         font_main_title = ImageFont.truetype("msjh.ttc", 36)
         font_day_title = ImageFont.truetype("msjh.ttc", 22)
@@ -182,12 +220,16 @@ def generate_itinerary_jpg(booking_info, itinerary_list):
     except IOError:
         font_main_title = font_day_title = font_th = font_td = font_td_bold = ImageFont.load_default()
 
-    # 頂部照片區塊
-    draw.rectangle([(50, 40), (850, 300)], fill=(240, 245, 250), outline=(220, 225, 230), width=1)
-    draw.text((360, 150), "[ 海顏民宿 HAIYEN ]", fill=(100, 110, 120), font=font_day_title)
-    
-    # 標題
-    draw.text((50, 340), "旅遊規劃", fill=(0, 0, 0), font=font_main_title)
+    # # 頂部照片區塊（原 40~300 高度差為 260，我們改用 current_y 來往下疊加）
+    block_top = current_y + 10
+    block_bottom = current_y + 270
+
+    # draw.rectangle([(50, block_top), (850, block_bottom)], fill=(240, 245, 250), outline=(220, 225, 230), width=1)
+    # draw.text((360, block_top + 110), "【 海顏民宿 HAIYEN 】", fill=(100, 110, 120), font=font_day_title)
+    current_y += 30
+    # 4. 標題（旅遊規劃）
+    draw.text((50, current_y + 30), "旅遊規劃", fill=(0, 0, 0), font=font_main_title)
+    current_y += 100 # 畫完標題，將 Y 軸往下推 100 像素給客人資訊
     
     # 💡 關鍵對齊點：根據 get_all_bookings 的 Tuple 索引值精準拆解
     c_name = booking_info[1]      # 客人姓名 (CustomerName)
@@ -195,21 +237,25 @@ def generate_itinerary_jpg(booking_info, itinerary_list):
     checkin_str = booking_info[3]  # 入住日期 (CheckInDate)
     checkout_str = booking_info[4] # 退房日期 (CheckOutDate)
     
-    info_text = f"入住貴賓：{c_name} 先生/小姐 \n安排房型：{r_name} \n入住期間：{checkin_str} ～ {checkout_str}"
-    draw.text((50, 410), info_text, fill=(100, 100, 100), font=font_day_title, spacing=10)
+    info_text = f"入住期間：{checkin_str} ～ {checkout_str}"
+    draw.text((50, current_y), info_text, fill=(100, 100, 100), font=font_day_title, spacing=10)
+
+    # 💡 計算 info_text 總共佔了三行字的高度，大約 110 像素
+    current_y += 110    
     
+    # # 6. 設定表格各個欄位的 X 軸起跑點與寬度
     col_x = {'time': 50, 'name': 150, 'note': 400, 'place': 700}
-    col_w = {'time': 90, 'name': 240, 'note': 290, 'place': 140}
-    
+    col_w = {'time': 80, 'name': 220, 'note': 270, 'place': 130}
+
     # 按天分組
     itinerary_by_day = {}
     for item in itinerary_list:
-        day_num = item[1] # 行程明細的 DayNumber 在第二個位置
+        day_num = item[2] # 行程明細的 DayNumber 在第三個位置 (索引值 2)
         if day_num not in itinerary_by_day:
             itinerary_by_day[day_num] = []
         itinerary_by_day[day_num].append(item)
         
-    current_y = 540
+    current_y += 20
     draw.text((50, current_y), "每日行程", fill=(50, 50, 50), font=font_day_title)
     current_y += 40
     
@@ -228,15 +274,15 @@ def generate_itinerary_jpg(booking_info, itinerary_list):
         
         # 表格標頭
         draw.rectangle([(50, current_y), (850, current_y+35)], fill=(250, 250, 250), outline=(230, 230, 230), width=1)
-        draw.text((col_x['time']+10, current_y+8), "🕒 時間", fill=(120, 120, 120), font=font_th)
-        draw.text((col_x['name']+10, current_y+8), "Aa 活動名稱", fill=(120, 120, 120), font=font_th)
-        draw.text((col_x['note']+10, current_y+8), "≡ 備註", fill=(120, 120, 120), font=font_th)
-        draw.text((col_x['place']+10, current_y+8), "⚑ 地點", fill=(120, 120, 120), font=font_th)
+        draw.text((col_x['time']+10, current_y+8), " 時間", fill=(120, 120, 120), font=font_th)
+        draw.text((col_x['name']+10, current_y+8), " 活動名稱", fill=(120, 120, 120), font=font_th)
+        draw.text((col_x['note']+10, current_y+8), " 備註", fill=(120, 120, 120), font=font_th)
+        draw.text((col_x['place']+10, current_y+8), " 地點", fill=(120, 120, 120), font=font_th)
         current_y += 35
         
         for item in itinerary_by_day[day_num]:
-            time_val = item[2] # 行程明細的 ActivityTime 在第三個位置
-            desc_val = item[3] # 行程明細的 Description 在第四個位置
+            time_val = item[3] # 行程明細的 ActivityTime 在第三個位置
+            desc_val = item[4] # 行程明細的 Description 在第四個位置
             
             parts = desc_val.split("｜")
             name_text = parts[0] if len(parts) > 0 else desc_val
@@ -252,34 +298,38 @@ def generate_itinerary_jpg(booking_info, itinerary_list):
             draw.line([(col_x['note'], current_y), (col_x['note'], current_y+row_height)], fill=(230, 230, 230), width=1)
             draw.line([(col_x['place'], current_y), (col_x['place'], current_y+row_height)], fill=(230, 230, 230), width=1)
             
-            draw.text((col_x['time']+10, current_y+10), str(time_val), fill=(80, 80, 80), font=font_td)
-            draw_text_wrapped(draw, name_text, col_x['name']+10, current_y+10, font_td_bold, (0, 0, 0), col_w['name'])
-            draw_text_wrapped(draw, note_text, col_x['note']+10, current_y+10, font_td, (100, 100, 100), col_w['note'])
-            draw.text((col_x['place']+10, current_y+10), place_text, fill=(80, 80, 80), font=font_td)
+            draw.text((col_x['time']+15, current_y+12), str(time_val), fill=(80, 80, 80), font=font_td)
+            
+            draw_text_wrapped(draw, name_text, col_x['name']+15, current_y+12, font_td_bold, (0, 0, 0), col_w['name'])
+            draw_text_wrapped(draw, note_text, col_x['note']+15, current_y+12, font_td, (100, 100, 100), col_w['note'])
+            
+            draw.text((col_x['place']+15, current_y+12), place_text, fill=(80, 80, 80), font=font_td)
             
             current_y += row_height
             
         current_y += 40
+#---- 輸出的[預算花費]表 ----------------------------------------------------------------
         
-    current_y += 20
-    draw.text((50, current_y), "預算花費", fill=(50, 50, 50), font=font_day_title)
-    current_y += 40
+    # current_y += 20 #留白
+    # draw.text((50, current_y), "預算花費", fill=(50, 50, 50), font=font_day_title)
+    # current_y += 40
     
-    draw.rectangle([(50, current_y), (850, current_y+35)], fill=(250, 250, 250), outline=(230, 230, 230), width=1)
-    draw.text((col_x['time']+10, current_y+8), "📅 日期", fill=(120, 120, 120), font=font_th)
-    draw.text((col_x['name']+10, current_y+8), "Aa 項目", fill=(120, 120, 120), font=font_th)
-    draw.text((col_x['note']+10, current_y+8), "☑ 已付款", fill=(120, 120, 120), font=font_th)
-    draw.text((col_x['place']+10, current_y+8), "# 金額", fill=(120, 120, 120), font=font_th)
-    current_y += 35
+    # draw.rectangle([(50, current_y), (850, current_y+35)], fill=(250, 250, 250), outline=(230, 230, 230), width=1)
+    # draw.text((col_x['time']+10, current_y+8), "📅 日期", fill=(120, 120, 120), font=font_th)
+    # draw.text((col_x['name']+10, current_y+8), "Aa 項目", fill=(120, 120, 120), font=font_th)
+    # draw.text((col_x['note']+10, current_y+8), "☑ 已付款", fill=(120, 120, 120), font=font_th)
+    # draw.text((col_x['place']+10, current_y+8), "# 金額", fill=(120, 120, 120), font=font_th)
+    # current_y += 35
     
-    for _ in range(3):
-        draw.rectangle([(50, current_y), (850, current_y+45)], outline=(230, 230, 230), width=1)
-        # 直線
-        draw.line([(col_x['name'], current_y), (col_x['name'], current_y+45)], fill=(230, 230, 230), width=1)
-        draw.line([(col_x['note'], current_y), (col_x['note'], current_y+45)], fill=(230, 230, 230), width=1)
-        draw.line([(col_x['place'], current_y), (col_x['place'], current_y+45)], fill=(230, 230, 230), width=1)
+    # for _ in range(3):
+    #     draw.rectangle([(50, current_y), (850, current_y+45)], outline=(230, 230, 230), width=1)
+    #     # 直線
+    #     draw.line([(col_x['name'], current_y), (col_x['name'], current_y+45)], fill=(230, 230, 230), width=1)
+    #     draw.line([(col_x['note'], current_y), (col_x['note'], current_y+45)], fill=(230, 230, 230), width=1)
+    #     draw.line([(col_x['place'], current_y), (col_x['place'], current_y+45)], fill=(230, 230, 230), width=1)
         
-        current_y += 45
+    #     current_y += 45
+#------------------------------------------------------------------------------------------
         
     final_img = img.crop((0, 0, 900, current_y + 80))
     img_io = io.BytesIO()

@@ -227,33 +227,35 @@ def template_add():
         
     return render_template("add_template.html")
 
-@app.route("/template/detail/<int:template_id>/add", methods=["POST"])
+@app.route("/template/detail/<template_id>/add", methods=["POST"])
 def template_detail_add(template_id):
-    """在細節頁面中直接幫該模板追加新的景點時段"""
     day_number = int(request.form["day_number"])
     activity_time = request.form["activity_time"]
-    description = request.form["description"]
     
-    # 呼叫我們之前就寫好的 add_template_detail 函數
-    add_template_detail(template_id, day_number, activity_time, description)
+    # 💡 接收三個新格子
+    act_name = request.form["act_name"]
+    act_note = request.form.get("act_note", "")
+    act_place = request.form.get("act_place", "")
     
-    # 💡 亮點：新增完後，直接自動跳轉回「原本這個模板的細節頁面」，畫面一重新整理就能看到新行程！
+    # 💡 魔術合體！用直線串起來存進資料庫
+    full_description = f"{act_name}｜{act_note}｜{act_place}"
+    
+    add_template_detail(template_id, day_number, activity_time, full_description)
     return redirect(f"/template/detail/{template_id}")
 
-@app.route("/template/detail/<template_id>")
+
+@app.route("/template/detail/<int:template_id>")
 def template_detail(template_id):
-    """查看行程模板的每日詳細景點"""
-    # 確保轉成整數去查資料庫
-    t_id = int(template_id)
+    # 1. 乖乖撈出該模板底下的所有行程明細列表即可
+    details = get_template_details(template_id)
     
-    # 1. 撈出模板主資訊
-    template = get_template_by_id(t_id)
-    
-    # 2. 撈出該模板底下的所有行程明細
-    details = get_template_details(t_id)
-    
-    # 3. 丟給前端網頁渲染
-    return render_template("template_detail.html", template=template, details=details)
+    # 2. 只需要傳這兩個變數給前端，保證不會再跳 NameError！
+    return render_template(
+        "template_detail.html", 
+        details=details, 
+        template_id=template_id
+    )
+
 
 @app.route("/template/detail/<template_id>/delete/<detail_id>")
 def template_detail_delete(template_id, detail_id):
@@ -269,25 +271,46 @@ def template_delete_main(template_id):
     """在總覽頁面刪除整套行程模板"""
     delete_entire_template(template_id)
     # 刪除完後，重新整理總覽列表
-    return redirect("/template/list")
+    return render_template('template_detail.html', details=details, template_id=template_id)
 
 @app.route("/template/detail/<template_id>/edit/<detail_id>", methods=["GET", "POST"])
 def template_detail_edit(template_id, detail_id):
-    """編輯單一筆行程景點時段"""
+    """編輯單一筆行程景點時段（升級三格拆分版）"""
     if request.method == "POST":
         day_number = int(request.form["day_number"])
         activity_time = request.form["activity_time"]
-        description = request.form["description"]
         
-        # 執行資料庫更新
-        update_template_detail(int(detail_id), day_number, activity_time, description)
+        # 💡 1. 接收編輯網頁傳回來的三個獨立欄位
+        act_name = request.form["act_name"]
+        act_note = request.form.get("act_note", "")
+        act_place = request.form.get("act_place", "")
         
-        # 💡 關鍵：更新後直接帶老闆娘退回細節總覽，此時資料庫會自動按時間重新排列！
+        # 💡 2. 重新拼接成一串，更新回資料庫
+        full_description = f"{act_name}｜{act_note}｜{act_place}"
+        
+        update_template_detail(int(detail_id), day_number, activity_time, full_description)
         return redirect(f"/template/detail/{template_id}")
         
-    # GET 模式：撈出舊資料，填入編輯網頁的輸入框中
+    # GET 模式：撈出舊資料
     detail_data = get_detail_by_id(int(detail_id))
-    return render_template("template_detail_edit.html", template_id=template_id, detail=detail_data)
+    # detail_data[4] 是原本的 Description 景點描述
+    raw_desc = detail_data[4] if detail_data else ""
+    
+    # 💡 3. 魔術拆分！把舊資料用 ｜ 切開，準備帶入網頁的三個格子裡
+    parts = raw_desc.split("｜")
+    name_val = parts[0] if len(parts) > 0 else raw_desc
+    note_val = parts[1] if len(parts) > 1 else ""
+    place_val = parts[2] if len(parts) > 2 else ""
+    
+    # 💡 4. 把切好的三個變數一起打包丟給 HTML
+    return render_template(
+        "template_detail_edit.html", 
+        template_id=template_id, 
+        detail=detail_data,
+        name_val=name_val,
+        note_val=note_val,
+        place_val=place_val
+    )
 
 #------------------------------------------------------------------------------------
 @app.route("/booking/apply_template/<int:booking_id>", methods=["POST"])

@@ -6,28 +6,39 @@
 </head>
 <body style="line-height: 1.8; padding: 20px;">
     <h1>✏️ 修改行程景點資料</h1>
-    <p>修改天數或時間後，系統會自動重新排列至正確的順序位置。</p>
+    <p>修改欄位後，系統會自動重新排列至正確的順序位置並自動切分表格。</p>
     
-    <!-- detail[2]=DayNumber, detail[3]=ActivityTime, detail[4]=Description -->
+    <!-- 表單傳送網址 -->
     <form action="/template/detail/{{ template_id }}/edit/{{ detail[0] }}" method="POST" style="max-width: 600px;">
         <p>
             <label>第幾天：</label>
+            <!-- detail[2] 是 DayNumber -->
             <input type="number" name="day_number" value="{{ detail[2] }}" min="1" style="width: 50px; padding: 5px;" required>
         </p>
         <p>
-            <!-- 💡 改成 type="time"，它會自動把舊的時間帶入選取器中 -->
-<p>
-    <label>活動時間：</label>
-    <input type="time" name="activity_time" value="{{ detail[3] }}" style="width: 150px; padding: 5px;" required>
-    <small style="color: gray; display: block;">💡 提示：現在系統會自動防呆，保證時間排序 100% 精準！</small>
-</p>
+            <label>活動時間：</label>
+            <!-- detail[3] 是 ActivityTime，使用 type="time" 自動防呆 -->
+            <input type="time" name="activity_time" value="{{ detail[3] }}" style="width: 150px; padding: 5px;" required>
+        </p>
+        
+        <!-- 💡 核心亮點：拆分成三個獨立格子，並帶入剛剛後端切好的舊資料！ -->
+        <fieldset style="padding: 15px; margin-top: 15px; border: 1px solid #ddd;">
+            <legend><strong>行程網格內文修改</strong></legend>
+            <p>
+                <label>活動名稱：</label>
+                <input type="text" name="act_name" value="{{ name_val }}" style="width: 80%; padding: 5px;" required>
+            </p>
+            <p>
+                <label>備註事項：</label>
+                <input type="text" name="act_note" value="{{ note_val }}" style="width: 80%; padding: 5px;">
+            </p>
+            <p>
+                <label>地點位置：</label>
+                <input type="text" name="act_place" value="{{ place_val }}" style="width: 50%; padding: 5px;">
+            </p>
+        </fieldset>
 
-        </p>
-        <p>
-            <label style="vertical-align: top;">景點行程描述：</label>
-            <textarea name="description" rows="4" style="width: 80%; padding: 5px;" required>{{ detail[4] }}</textarea>
-        </p>
-        <p>
+        <p style="margin-top: 20px;">
             <button type="submit" style="padding: 8px 15px; cursor: pointer;">💾 儲存修改</button>
             <a href="/template/detail/{{ template_id }}" style="margin-left: 15px; text-decoration: none; color: gray;">取消返回</a>
         </p>

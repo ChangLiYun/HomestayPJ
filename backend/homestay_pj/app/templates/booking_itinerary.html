@@ -25,7 +25,7 @@
     </div>
     {% endif %}
 
-    <!-- 2. 強大功能：套用/更換行程模板的下拉選單 -->
+    <!-- 2. 強大功能：套用/更換行程模板的下拉選單  -->
     <fieldset style="max-width: 700px; padding: 15px; margin-bottom: 25px; border: 1px solid #ccc;">
         <legend>⚙️ <strong>快速套用或更換行程範本</strong></legend>
         <form action="/booking/apply_template/{{ booking[0] }}" method="POST">
@@ -40,30 +40,43 @@
         </form>
     </fieldset>
 
+
     <!-- 3. 展示該客戶目前的專屬客製化行程表格 -->
     <h3>📊 本訂單目前的客製化行程表</h3>
     <table border="1" style="width: 100%; max-width: 700px; border-collapse: collapse; text-align: center;">
-        <tr style="background-color: #e6f7ff;"> <!-- 給客人行程來個舒服的淡藍色 -->
-            <th style="padding: 10px; width: 90px;">天數</th>
-            <th style="padding: 10px; width: 110px;">預計時間</th>
-            <th style="padding: 10px;">客製化行程景點內容</th>
+        <tr style="background-color: #f2f2f2;">
+            <th style="padding: 10px; width: 80px;">天數</th>
+            <th style="padding: 10px; width: 100px;">預計時間</th>
+            <th style="padding: 10px; width: 180px;">活動名稱</th>
+            <th style="padding: 10px;">備註事項</th>
+            <th style="padding: 10px; width: 120px;">地點位置</th>
         </tr>
-
+        
         {% if itinerary %}
-            {% for i in itinerary %}
-            <tr>
-                <!-- i=DayNumber, i=ActivityTime, i=Description -->
-                <td style="padding: 8px;">第 {{ i[1] }} 天</td>
-                <td style="padding: 8px;">{{ i[2] }}</td>
-                <td style="padding: 8px; text-align: left;">{{ i[3] }}</td>
-            </tr>
+            {% for d in itinerary %} 
+                
+                <!-- 💡 這裡對齊後端補撈 BookingId 後的 5 欄位新架構 -->
+                {% set parts = d[4].split('｜') %}
+                {% set name_val = parts[0] if parts|length > 0 else d[4] %}
+                {% set note_val = parts[1] if parts|length > 1 else '' %}
+                {% set place_val = parts[2] if parts|length > 2 else '' %}
+                
+                <tr>
+                    <td>第 {{ d[2] }} 天</td>
+                    <td>{{ d[3] }}</td>
+                    <td style="padding: 8px; text-align: left;"><strong>{{ name_val }}</strong></td>
+                    <td style="padding: 8px; text-align: left; color: #666;">{{ note_val }}</td>
+                    <td style="padding: 8px; color: #333;">{{ place_val }}</td>
+                </tr>
             {% endfor %}
         {% else %}
             <tr>
-                <td colspan="3" style="padding: 20px; color: gray;">💡 目前這位客人還沒有任何行程。請在上方選擇一個系統範本並點擊「執行套用」！</td>
+                <td colspan="5" style="padding: 20px; color: gray;">💡 目前這位客人還沒有任何行程。請在上方選擇一個系統範本並點擊「執行套用」！</td>
             </tr>
         {% endif %}
+
     </table>
+
 
     <br>
     <a href="/booking/list">🗓️ 返回訂房紀錄總覽</a>

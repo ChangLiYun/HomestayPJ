@@ -6,38 +6,54 @@
 </head>
 <body style="line-height: 1.8; padding: 20px;">
 
-    <!-- template[1] 代表 TemplateName -->
-    <h1>🗺️ 行程模板：{{ template[1] }}</h1>
-    <p>以下為本模板預設的每日推薦行程：</p>
+    <h1>行程模板明細管理 (模板 ID: {{ template_id }})</h1>
+
 
     <!-- 📊 核心行程表格開始 -->
-    <table border="1" style="width: 100%; max-width: 700px; border-collapse: collapse; text-align: center;">
+    <table border="1" style="width: 100%; max-width: 850px; border-collapse: collapse; text-align: center;">
         <tr style="background-color: #f2f2f2;">
             <th style="padding: 10px; width: 90px;">第幾天</th>
-            <th style="padding: 10px; width: 110px;">時間</th>
-            <th style="padding: 10px;">行程景點內容</th>
-            <th style="padding: 10px; width: 80px;">操作</th>
+            <th style="padding: 10px; width: 100px;">時間</th>
+            <th style="padding: 10px; width: 220px;"> 活動名稱</th>
+            <th style="padding: 10px; width: 220px;"> 備註事項</th>
+            <th style="padding: 10px; width: 120px;"> 地點位置</th>
+            <th style="padding: 10px; width: 100px;">操作</th>
         </tr>
 
         {% if details %}
             {% for d in details %}
+            <!-- 1. 將 d[4] 改為 d[3]：第四個欄位才是 Description 拼接字串 -->
+            {% set parts = d[3].split('｜') %}
+            {% set name_val = parts[0] if parts|length > 0 else '' %}
+            {% set note_val = parts[1] if parts|length > 1 else '' %}
+            {% set place_val = parts[2] if parts|length > 2 else '' %}
+
             <tr>
-                <!-- d[1]=DayNumber, d[2]=ActivityTime, d[3]=Description -->
+                <!-- 2. 第幾天：改為 d[1] (DayNumber) -->
                 <td style="padding: 8px;">第 {{ d[1] }} 天</td>
-                <td style="padding: 8px;">{{ d[2] }}</td>
-                <td style="padding: 8px; text-align: left;">{{ d[3] }}</td>
                 
-                <!-- 🗑️ 刪除按鈕，注意這裡要同時傳入模板 ID 和這筆行程的 DetailId (d[0]) -->
+                <!-- 3. 時間：改為 d[2] (ActivityTime) -->
+                <td style="padding: 8px;">{{ d[2] }}</td>
+                
+                <!-- 4. 活動名稱、備註、地點位置（不變） -->
+                <td style="padding: 8px; text-align: left;">{{ name_val }}</td>
+                <td style="padding: 8px; text-align: left; color: #666;">{{ note_val }}</td>
+                <td style="padding: 8px; color: #333;">{{ place_val }}</td>
+                
+                <!-- 5. 操作按鈕：改為 d[0] (DetailId) -->
                 <td style="padding: 8px;">
-                    <a href="/template/detail/{{ template[0] }}/edit/{{ d[0] }}" style="text-decoration: none; color: blue;"> 編輯</a>
+                    <a href="/template/detail/{{ template_id }}/edit/{{ d[0] }}" style="text-decoration: none; color: blue;">編輯</a>
+
                     &nbsp;|&nbsp;
-                    <a href="/template/detail/{{ template[0] }}/delete/{{ d[0] }}" onclick="return confirm('確定要刪除這段行程嗎？');" style="color: red; text-decoration: none;"> 刪除</a>
+                    <a href="/template/detail/{{ template_id }}/delete/{{ d[0] }}" onclick="return confirm('確定要刪除這段行程嗎？');" style="color: red;">刪除</a>
                 </td>
             </tr>
+
+
             {% endfor %}
         {% else %}
             <tr>
-                <td colspan="4" style="padding: 15px; color: gray;">目前此模板尚未建立任何行程細節。</td>
+                <td colspan="6" style="padding: 15px; color: gray;">目前此模板尚未建立任何行程細節。</td>
             </tr>
         {% endif %}
     </table>
@@ -47,7 +63,8 @@
     <!-- 💡 快速追加行程細節的小表單 -->
     <hr style="max-width: 700px; margin: 30px 0; border: 0.5px solid #eee;">
     <h3>➕ 追加此模板的行程景點</h3>
-    <form action="/template/detail/{{ template[0] }}/add" method="POST" style="max-width: 700px; line-height: 1.8;">
+    <form action="/template/detail/{{ template_id }}/add" method="POST" style="max-width: 700px; line-height: 1.8;">
+
         <p>
             <label>第幾天：</label>
             <input type="number" name="day_number" value="1" min="1" style="width: 50px; padding: 5px;" required>
@@ -55,10 +72,21 @@
             <label style="margin-left: 20px;">活動時間：</label>
             <input type="time" name="activity_time" style="width: 120px; padding: 5px;" required>
         </p>
+    
         <p>
-            <label style="vertical-align: top;">景點行程描述：</label>
-            <textarea name="description" rows="2" style="width: 75%; padding: 5px;" placeholder="例如：前往馬公市區享用在地仙人掌冰" required></textarea>
+            <label>活動名稱：</label>
+            <input type="text" name="act_name" placeholder="例如：海顏民宿五間房包棟" style="width: 250px; padding: 5px;" required>
         </p>
+        <p>
+            <label>備註事項：</label>
+            <input type="text" name="act_note" placeholder="例如：訂金5000，尾款21000" style="width: 250px; padding: 5px;">
+        </p>
+        <p>
+            <label>地點位置：</label>
+            <input type="text" name="act_place" placeholder="例如：馬公市" style="width: 150px; padding: 5px;">
+        </p>
+
+        
         <p>
             <button type="submit" style="padding: 6px 12px; cursor: pointer;"> 追加至本行程</button>
         </p>
