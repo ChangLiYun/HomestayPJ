@@ -172,8 +172,15 @@ def room_type_delete(room_type_id):
     import os
     
     try:
+        # 1. 自動適應路徑判斷
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        db_path = os.path.abspath(os.path.join(base_dir, "../../database/homestaypj.db"))
+        
+        # 🌟 如果偵測到是 Linux 雲端環境（沒有 D 槽），強迫改去刪除 /tmp 專區裡面的資料庫資料！
+        if not os.path.exists("D:\\"):
+            db_path = "/tmp/homestaypj.db"
         # 從 main.py 的位置精準定位到根目錄的資料庫
-        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../database/homestaypj.db"))
+        # db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../database/homestaypj.db"))
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         

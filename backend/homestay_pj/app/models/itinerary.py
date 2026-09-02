@@ -9,7 +9,9 @@ from datetime import datetime, timedelta
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = CURRENT_DIR.split("backend")[0] # 自動切到 backend 之前的那一層（也就是 HomestayERP）
 DB_PATH = os.path.join(BASE_DIR, "database", "homestaypj.db")
-
+# 雲端環境專用判斷：如果偵測到是 Linux 雲端環境（沒有 D 槽），強迫將資料庫指向可寫入的 /tmp 專區
+if not os.path.exists("D:\\"):
+    DB_PATH = "/tmp/homestaypj.db"
 # ========================================================
 # 1. 行程模板管理 (基礎 CRUD 函數)
 # ========================================================
