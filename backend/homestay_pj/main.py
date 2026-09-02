@@ -41,19 +41,53 @@ app = Flask(
     template_folder="app/templates"
 )
 #---- 初始化 ----------------------------------------------
-# ➕ 請將這段貼在 main.py 的匯入區塊或 app = Flask(__name__) 下方
+# ==================== [雲端可讀寫資料庫自動搬移機制] ====================
 try:
+    import sqlite3
     import os
-    print("🔄 [雲端檢查] 偵測到伺服器啟動，正在自動檢查與初始化資料表...")
-    
-    # 讓系統直接在背景執行您根目錄的 init_db.py 腳本
-    os.system("python init_db.py") 
-    
-    print("✅ [雲端檢查] 資料表自動檢查與建立流程完成！")
-except Exception as e:
-    print(f"⚠️ [雲端檢查] 自動執行 init_db 失敗: {e}")
+    import shutil
 
-#--------------------------------------------------
+    # 1. 定義原本打包進來的唯讀路徑，與雲端唯一允許讀寫的 /tmp 路徑
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    original_db = os.path.abspath(os.path.join(base_dir, "../../database/homestaypj.db"))
+    schema_path = os.path.abspath(os.path.join(base_dir, "../../database/schema.sql"))
+    
+    # 🌟 關鍵：將真正運行的 db 定位到 Render 允許自由寫入的 /tmp 目錄下！
+    writable_db = "/tmp/homestaypj.db"
+
+    print("🔄 [雲端檢查] 正在配置可寫入資料庫環境...")
+
+    # 如果 /tmp 裡面還沒有這個資料庫，我們才需要初始化或複製
+    if not os.path.exists(writable_db):
+        if os.path.exists(original_db):
+            # 如果原本專案裡有空的 db，直接複製過去 /tmp
+            shutil.copyfile(original_db, writable_db)
+            print("✅ [雲端檢查] 已成功將唯讀資料庫複製到可寫入的 /tmp 專區！")
+        else:
+            # 如果專案裡連 db 都沒有，直接在 /tmp 建立一個全新的，並跑 schema.sql
+            print("🆕 [雲端檢查] 偵測到全新環境，正在 /tmp 建立新資料庫...")
+            if os.path.exists(schema_path):
+                with open(schema_path, "r", encoding="utf-8") as f:
+                    sql_script = f.read()
+                conn = sqlite3.connect(writable_db)
+                cursor = conn.cursor()
+                cursor.executescript(sql_script)
+                conn.commit()
+                conn.close()
+                print("✅ [雲端檢查] /tmp 全新資料庫結構初始化成功！")
+
+    # 🌟 核心：強迫整個專案（不論是 customer.py 還是 room_type.py）往後都去連 /tmp 這個可寫入的 db！
+    # 藉由動態修改您 config 裡面的資料庫路徑（請確保這名字與您 config.py 內的路徑變數一致，通常是 DATABASE_PATH）
+    try:
+        import config
+        config.DATABASE_PATH = writable_db  # 💡 如果您的變數叫別的名字，請改掉它
+        print(f"🎯 [雲端檢查] 成功將系統資料庫指標重新導向至: {writable_db}")
+    except Exception as e:
+        print(f"⚠️ [雲端檢查] 嘗試覆寫 config 變數失敗，請手動確認 config 內的名稱: {e}")
+
+except Exception as e:
+    print(f"⚠️ [雲端檢查] 配置可寫入資料庫時發生錯誤: {e}")
+# ======================================================================
 
 # 👉📋🔍 🧭
 @app.route("/")

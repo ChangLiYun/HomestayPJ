@@ -1,7 +1,13 @@
 import sqlite3
+import os 
 
-# 這裡共用之前在 customer.py 定義的絕對路徑
-DB_PATH = r"D:\HomestayERP\database\homestaypj.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "../../../../database/homestaypj.db"))
+if not os.path.exists("D:\\"):
+    DB_PATH = "/tmp/homestaypj.db"
+
+#  customer.py 定義的絕對路徑
+# DB_PATH = r"D:\HomestayERP\database\homestaypj.db"
 
 # 1. 新增房型功能
 def add_room_type(room_name, capacity, total_rooms):

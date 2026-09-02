@@ -1,6 +1,15 @@
 import sqlite3
+import os  
 
-DB_PATH = r"D:\HomestayERP\database\homestaypj.db"
+# 1.  改用自動適應相對路徑：在您本機上它會自動正確指向您的 D 槽資料庫！
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "../../../../database/homestaypj.db"))
+
+# 2.  雲端環境專用判斷：如果偵測到是 Linux 雲端環境（沒有 D 槽），強迫改用可自由寫入的 /tmp 專區路徑
+if not os.path.exists("D:\\"):
+    DB_PATH = "/tmp/homestaypj.db"
+
+# DB_PATH = r"D:\HomestayERP\database\homestaypj.db"
 
 def add_customer(customer_name, phone):
     conn = sqlite3.connect(DB_PATH)
@@ -19,18 +28,14 @@ def add_customer(customer_name, phone):
 def get_all_customers():
 
     conn = sqlite3.connect(DB_PATH)
-
     cursor = conn.cursor()
-
     cursor.execute("""
         SELECT *
         FROM Customer
     """)
 
     customers = cursor.fetchall()
-
     conn.close()
-
     return customers
 
 
@@ -60,7 +65,6 @@ def update_customer(customer_id, name, phone):
     
     conn.commit()
     conn.close()
-
 
 # 3. 根據 ID 刪除特定的客戶資料
 def delete_customer(customer_id):

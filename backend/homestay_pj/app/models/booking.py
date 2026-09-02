@@ -1,6 +1,12 @@
 import sqlite3
+import os 
 
-DB_PATH = r"D:\HomestayERP\database\homestaypj.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "../../../../database/homestaypj.db"))
+if not os.path.exists("D:\\"):
+    DB_PATH = "/tmp/homestaypj.db"
+
+# DB_PATH = r"D:\HomestayERP\database\homestaypj.db"
 
 # 1. 新增訂房
 def add_booking(customer_id, room_type_id, checkin, checkout, guest_count, note):
