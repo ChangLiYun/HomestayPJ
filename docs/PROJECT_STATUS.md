@@ -172,4 +172,5 @@ HomestayERP
 
 ## 已知問題與維護 (Known Issues)
 - [ ] 釐清並解決 `.gitignore` 檔案的 Git Merge Conflict 衝突。
+- 房型+包棟
 

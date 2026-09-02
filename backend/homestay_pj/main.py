@@ -102,6 +102,7 @@ def room_type_list():
     room_types = get_all_room_types()
     return render_template("room_type_list.html", room_types=room_types)
 
+#----------------------------------------------------------------------------------
 # 新增房型頁面
 @app.route("/room_type/add", methods=["GET", "POST"])
 def room_type_add():
@@ -116,6 +117,28 @@ def room_type_add():
 
     return render_template("add_room_type.html")
 
+# 刪除房型
+@app.route("/room_type/delete/<int:room_type_id>")
+def room_type_delete(room_type_id):
+    import sqlite3
+    import os
+    
+    try:
+        # 從 main.py 的位置精準定位到根目錄的資料庫
+        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../database/homestaypj.db"))
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM RoomType WHERE RoomTypeId = ?", (room_type_id,))
+        conn.commit()
+        conn.close()
+        print(f"房型 ID {room_type_id} 刪除成功")
+    except Exception as e:
+        print(f"刪除失敗: {e}")
+        
+    return redirect("/room_type/list")
+
+#----------------------------------------------------------------------------------
 # 訂房紀錄列表
 @app.route("/booking/list")
 def booking_list():
@@ -271,7 +294,7 @@ def template_delete_main(template_id):
     """在總覽頁面刪除整套行程模板"""
     delete_entire_template(template_id)
     # 刪除完後，重新整理總覽列表
-    return render_template('template_detail.html', details=details, template_id=template_id)
+    return redirect("/template/list")
 
 @app.route("/template/detail/<template_id>/edit/<detail_id>", methods=["GET", "POST"])
 def template_detail_edit(template_id, detail_id):

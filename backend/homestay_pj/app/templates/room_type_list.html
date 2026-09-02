@@ -14,7 +14,11 @@
         <td style="padding: 8px;">{{ room[0] }}</td>
         <td style="padding: 8px;">{{ room[1] }}</td>
         <td style="padding: 8px;">{{ room[2] }}</td>
+        <!-- 刪除建 -->
         <td style="padding: 8px;">{{ room[3] }}</td>
+        <td style="padding: 8px;">
+            <a href="/room_type/delete/{{ room[0] }}" onclick="return confirm('確定要刪除此房型嗎？');" style="color: red; text-decoration: none;"> 刪除</a>
+        </td>
     </tr>
     {% endfor %}
 </table>

@@ -1,17 +1,31 @@
-<h1>新增客戶</h1>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>新增房型</title>
+</head>
+<body>
 
-<form method="POST">
-    <p>
-        <label>客戶姓名：</label>
-        <input type="text" name="customer_name" placeholder="例如：王小明" required>
-    </p>
-    <p>
-        <label>電話號碼：</label>
-        <input type="text" name="phone" placeholder="例如：0911223344" required>
-    </p>
-    
-    <button type="submit">➕ 建立客戶</button>
-</form>
+    <h1>🏢 新增房型</h1>
 
-<br>
-<a href="/">🔙 回首頁</a>
+    <form method="POST" action="/room_type/add">
+        <p>
+            <label>房型名稱：</label>
+            <input type="text" name="room_name" placeholder="例如：豪華雙人房" required>
+        </p>
+        <p>
+            <label>可住人數 (人)：</label>
+            <input type="number" name="capacity" placeholder="例如：2" min="1" required>
+        </p>
+        <p>
+            <label>總房間數 (間)：</label>
+            <input type="number" name="total_rooms" placeholder="例如：5" min="1" required>
+        </p>
+        <button type="submit">➕ 建立房型</button>
+    </form>
+
+    <br>
+    <a href="/">🔙 回首頁</a>
+
+</body>
+</html>
