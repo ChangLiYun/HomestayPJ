@@ -40,6 +40,20 @@ app = Flask(
     __name__,
     template_folder="app/templates"
 )
+#---- 初始化 ----------------------------------------------
+# ➕ 請將這段貼在 main.py 的匯入區塊或 app = Flask(__name__) 下方
+try:
+    import os
+    print("🔄 [雲端檢查] 偵測到伺服器啟動，正在自動檢查與初始化資料表...")
+    
+    # 讓系統直接在背景執行您根目錄的 init_db.py 腳本
+    os.system("python init_db.py") 
+    
+    print("✅ [雲端檢查] 資料表自動檢查與建立流程完成！")
+except Exception as e:
+    print(f"⚠️ [雲端檢查] 自動執行 init_db 失敗: {e}")
+
+#--------------------------------------------------
 
 # 👉📋🔍 🧭
 @app.route("/")
